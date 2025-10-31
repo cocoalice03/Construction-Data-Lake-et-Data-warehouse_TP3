@@ -1,17 +1,10 @@
 """Small helper to manage access rights for the student data lake project.
 
-It creates a very small table `data_lake_permissions` in MySQL and exposes
-three simple commands:
-    - create-table : ensure the table exists
-    - grant        : add or update a permission for a user and a folder
-    - list         : display current permissions
-
-Example:
-    python permissions_manager.py create-table --mysql-password mypass
-    python permissions_manager.py grant --email alice@example.com \
-        --folder streams/transaction_stream --permission read --granted-by admin@example.com \
-        --mysql-password mypass
-    python permissions_manager.py list --mysql-password mypass
+It creates a small table `data_lake_permissions` in MySQL and exposes
+three commands:
+  * create-table : ensure the table exists
+  * grant        : add or update a permission for a user and folder
+  * list         : display current permissions
 """
 from __future__ import annotations
 
@@ -70,51 +63,48 @@ class PermissionStore:
         return self.cursor.fetchall()
 
 
-+def main() -> None:
-+    parser = argparse.ArgumentParser(description="Tiny permissions helper for the data lake.")
-+    subparsers = parser.add_subparsers(dest="command", required=True)
-+
-+    table_parser = subparsers.add_parser("create-table", help="Créer la table data_lake_permissions.")
-+    table_parser.add_argument("--mysql-password", required=True)
-+
-+    grant_parser = subparsers.add_parser("grant", help="Accorder une permission à un utilisateur.")
-+    grant_parser.add_argument("--mysql-password", required=True)
-+    grant_parser.add_argument("--email", required=True)
-+    grant_parser.add_argument("--folder", required=True)
-+    grant_parser.add_argument("--permission", choices=["read", "write", "admin"], default="read")
-+    grant_parser.add_argument("--granted-by", required=True)
-+    grant_parser.add_argument("--expires-at", help="Date d'expiration optionnelle (YYYY-MM-DD)")
-+
-+    list_parser = subparsers.add_parser("list", help="Lister les permissions existantes.")
-+    list_parser.add_argument("--mysql-password", required=True)
-+
-+    args = parser.parse_args()
-+
-+    try:
-+        store = PermissionStore(password=args.mysql_password)
-+    except Error as err:
-+        raise SystemExit(f"Connexion MySQL impossible : {err}")
-+
-+    try:
-+        if args.command == "create-table":
-+            store.ensure_table()
-+            print("Table data_lake_permissions vérifiée/créée.")
-+        elif args.command == "grant":
-+            store.grant(args.email, args.folder, args.permission, args.granted_by, args.expires_at)
-+            print(f"Permission '{args.permission}' accordée à {args.email} sur {args.folder}.")
-+        elif args.command == "list":
-+            rows = store.list_permissions()
-+            if not rows:
-+                print("Aucune permission enregistrée.")
-+            else:
-+                for row in rows:
-+                    print(
-+                        f"- {row['user_email']} -> {row['folder_path']} ({row['permission_type']})"
-+                    )
-+    finally:
-+        store.close()
-+
-+
-+if __name__ == "__main__":
-+    main()
-+PY
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Tiny permissions helper for the data lake.")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    table_parser = subparsers.add_parser("create-table", help="Créer la table data_lake_permissions.")
+    table_parser.add_argument("--mysql-password", required=True)
+
+    grant_parser = subparsers.add_parser("grant", help="Accorder une permission à un utilisateur.")
+    grant_parser.add_argument("--mysql-password", required=True)
+    grant_parser.add_argument("--email", required=True)
+    grant_parser.add_argument("--folder", required=True)
+    grant_parser.add_argument("--permission", choices=["read", "write", "admin"], default="read")
+    grant_parser.add_argument("--granted-by", required=True)
+    grant_parser.add_argument("--expires-at", help="Date d'expiration optionnelle (YYYY-MM-DD)")
+
+    list_parser = subparsers.add_parser("list", help="Lister les permissions existantes.")
+    list_parser.add_argument("--mysql-password", required=True)
+
+    args = parser.parse_args()
+
+    try:
+        store = PermissionStore(password=args.mysql_password)
+    except Error as err:
+        raise SystemExit(f"Connexion MySQL impossible : {err}")
+
+    try:
+        if args.command == "create-table":
+            store.ensure_table()
+            print("Table data_lake_permissions vérifiée/créée.")
+        elif args.command == "grant":
+            store.grant(args.email, args.folder, args.permission, args.granted_by, args.expires_at)
+            print(f"Permission '{args.permission}' accordée à {args.email} sur {args.folder}.")
+        elif args.command == "list":
+            rows = store.list_permissions()
+            if not rows:
+                print("Aucune permission enregistrée.")
+            else:
+                for row in rows:
+                    print(f"- {row['user_email']} -> {row['folder_path']} ({row['permission_type']})")
+    finally:
+        store.close()
+
+
+if __name__ == "__main__":
+    main()
