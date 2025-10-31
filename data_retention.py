@@ -1,12 +1,4 @@
-"""Minimal data retention helper for the student data lake setup.
 
-- Streams: keep only the last N days (folders year=YYYY/month=MM/day=DD).
-- Tables: keep only the most recent versions (folders version=v1, v2, ...).
-
-Example usage:
-    python data_retention.py --stream transaction_stream --retention-days 30
-    python data_retention.py --table user_transaction_summary --keep-versions 5
-"""
 from __future__ import annotations
 
 import argparse
